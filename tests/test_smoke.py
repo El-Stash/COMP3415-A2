@@ -48,5 +48,12 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(order["delivery_cents"], 0)
         self.assertEqual(order["total_cents"], 7500)
 
+    def test_student_delivery_order_under_discount(self):
+        order = self.service.place_order("student", [{"product_id": "pen-pack", "quantity": 3}], "delivery")
+        self.assertEqual(order["subtotal_cents"], 2250)
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 600)
+        self.assertEqual(order["total_cents"], 2850)
+
 if __name__ == "__main__":
     unittest.main()
