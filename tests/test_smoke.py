@@ -41,6 +41,7 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(self.service.catalog(), before)
 
     #beginning of my testing safety net
+    #normal behavior tests
     def test_regular_pickup_order(self):
         order = self.service.place_order("regular", [{"product_id": "bag", "quantity": 3}])
         self.assertEqual(order["subtotal_cents"], 7500)
@@ -61,6 +62,32 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(order["discount_cents"], 550)
         self.assertEqual(order["delivery_cents"], 600)
         self.assertEqual(order["total_cents"], 5550)
+
+    def test_regular_pickup_order_multiple_items(self):
+        order = self.service.place_order("regular", [{"product_id": "notebook", "quantity": 1}], [{"product_id": "hoodie", "quantity": 1}], "pickup")
+        self.assertEqual(order["subtotal_cents"], 4500)
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 0)
+        self.assertEqual(order["total_cents"], 4500)
+        self.assertEqual(order["items"][0]["product_id"], "notebook")
+        self.assertEqual(order["items"][1]["product_id"], "hoodie")
+
+    def test_student_delivery_order_multiple_items(self):
+        order = self.service.place_order("regular", [{"product_id": "pen-pack", "quantity": 2}], [{"product_id": "mug", "quantity": 1}], "delivery")
+        self.assertEqual(order["subtotal_cents"], 3000)
+        self.assertEqual(order["discount_cents"], 300)
+        self.assertEqual(order["delivery_cents"], 600)
+        self.assertEqual(order["total_cents"], 3300)
+        self.assertEqual(order["items"][0]["product_id"], "pen-pack")
+        self.assertEqual(order["items"][1]["product_id"], "mug")
+
+    def test_regular_delivery_order_free_delivery_qualified(self):
+        order = self.service.place_order("regular", [{"product_id": "hoodie", "quantity": 3}], "pickup")
+        self.assertEqual(order["subtotal_cents"], 12000)
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 0)
+        self.assertEqual(order["total_cents"], 12000)
+        
 
 
 if __name__ == "__main__":
