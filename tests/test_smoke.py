@@ -73,7 +73,7 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(order["items"][1]["product_id"], "hoodie")
 
     def test_student_delivery_order_multiple_items(self):
-        order = self.service.place_order("regular", [{"product_id": "pen-pack", "quantity": 4}, {"product_id": "mug", "quantity": 2}], "delivery")
+        order = self.service.place_order("student", [{"product_id": "pen-pack", "quantity": 4}, {"product_id": "mug", "quantity": 2}], "delivery")
         self.assertEqual(order["subtotal_cents"], 6000)
         self.assertEqual(order["discount_cents"], 600)
         self.assertEqual(order["delivery_cents"], 600)
