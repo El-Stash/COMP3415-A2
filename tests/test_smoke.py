@@ -64,7 +64,7 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(order["total_cents"], 5550)
 
     def test_regular_pickup_order_multiple_items(self):
-        order = self.service.place_order("regular", [{"product_id": "notebook", "quantity": 1}], [{"product_id": "hoodie", "quantity": 1}], "pickup")
+        order = self.service.place_order("regular", [{"product_id": "notebook", "quantity": 1}, {"product_id": "hoodie", "quantity": 1}], "pickup")
         self.assertEqual(order["subtotal_cents"], 4500)
         self.assertEqual(order["discount_cents"], 0)
         self.assertEqual(order["delivery_cents"], 0)
@@ -73,11 +73,11 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(order["items"][1]["product_id"], "hoodie")
 
     def test_student_delivery_order_multiple_items(self):
-        order = self.service.place_order("regular", [{"product_id": "pen-pack", "quantity": 2}], [{"product_id": "mug", "quantity": 1}], "delivery")
-        self.assertEqual(order["subtotal_cents"], 3000)
-        self.assertEqual(order["discount_cents"], 300)
+        order = self.service.place_order("regular", [{"product_id": "pen-pack", "quantity": 4}, {"product_id": "mug", "quantity": 2}], "delivery")
+        self.assertEqual(order["subtotal_cents"], 6000)
+        self.assertEqual(order["discount_cents"], 600)
         self.assertEqual(order["delivery_cents"], 600)
-        self.assertEqual(order["total_cents"], 3300)
+        self.assertEqual(order["total_cents"], 6000)
         self.assertEqual(order["items"][0]["product_id"], "pen-pack")
         self.assertEqual(order["items"][1]["product_id"], "mug")
 
