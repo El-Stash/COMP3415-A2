@@ -40,6 +40,13 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(cancelled["status"], "cancelled")
         self.assertEqual(self.service.catalog(), before)
 
+    #beginning of my testing safety net
+    def test_regular_pickup_order(self):
+        order = self.service.place_order("regular", [{"product_id": "bag", "quantity": 3}])
+        self.assertEqual(order["subtotal_cents"], 7500)
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 0)
+        self.assertEqual(order["total_cents"], 7500)
 
 if __name__ == "__main__":
     unittest.main()
