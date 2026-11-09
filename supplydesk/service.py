@@ -65,6 +65,8 @@ class OrderService:
                 order = candidate
                 break
         if order is None:
+            if order_id == None:
+                order_id = ""
             raise ValueError("Unknown order: " + order_id)
         for line in order["items"]:
             for product in state["catalog"]:
