@@ -41,7 +41,6 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(self.service.catalog(), before)
 
     #beginning of my testing safety net
-    #normal behavior tests
     def test_regular_pickup_order(self):
         order = self.service.place_order("regular", [{"product_id": "bag", "quantity": 3}])
         self.assertEqual(order["subtotal_cents"], 7500)
@@ -87,8 +86,66 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(order["discount_cents"], 0)
         self.assertEqual(order["delivery_cents"], 0)
         self.assertEqual(order["total_cents"], 12000)
-        
 
+    def test_regular_pickup_none_quote(self):
+        with self.assertRaises(ValueError) as context:
+            self.service.quote("regular", None)
+        self.assertEqual(str(context.exception), "An order must contain at least one item.")
+
+    def test_regular_pickup_empty_quote(self):
+        with self.assertRaises(ValueError) as context:
+            self.service.quote("regular", [])
+        self.assertEqual(str(context.exception), "An order must contain at least one item.")
+
+    def test_regular_pickup_zero_quote(self):
+        with self.assertRaises(ValueError) as context:
+            self.service.quote("regular", [{"product_id": "notebook", "quantity": 0}])
+        self.assertEqual(str(context.exception), "Quantity must be an integer from 1 to 99.")
+
+    def test_regular_pickup_none_order(self):
+        with self.assertRaises(ValueError) as context:
+            self.service.place_order("regular", None)
+        self.assertEqual(str(context.exception), "An order must contain at least one item.")
+
+    def test_regular_pickup_empty_order(self):
+        with self.assertRaises(ValueError) as context:
+            self.service.place_order("regular", [])
+        self.assertEqual(str(context.exception), "An order must contain at least one item.")
+
+    def test_regular_pickup_zero_order(self):
+        with self.assertRaises(ValueError) as context:
+            self.service.place_order("regular", [{"product_id": "notebook", "quantity": 0}])
+        self.assertEqual(str(context.exception), "Quantity must be an integer from 1 to 99.")
+
+    def test_regular_pickup_max_of_an_item_quote(self):
+        quote = self.service.quote("regular", [{"product_id": "notebook", "quantity": 20}])
+        self.assertEqual(quote["items"][0]["product_id"], "notebook")
+
+    def test_regular_pickup_max_of_an_item_order(self):
+        order = self.service.place_order("regular", [{"product_id": "notebook", "quantity": 20}])
+        self.assertEqual(order["order_id"], "ORD-0001")
+        self.assertEqual(order["status"], "placed")
+
+    def test_student_pickup_just_below_discount_quote(self):
+        order = self.service.quote("regular", [{"product_id": "bag", "quantity": 2}])
+        self.assertEqual(order["subtotal_cents"], 5000)
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 0)
+        self.assertEqual(order["total_cents"], 5000)
+
+    def test_student_pickup_just_below_discount_order(self):
+        order = self.service.place_order("regular", [{"product_id": "bag", "quantity": 2}])
+        self.assertEqual(order["subtotal_cents"], 5000)
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 0)
+        self.assertEqual(order["total_cents"], 5000)
+
+    def test_regular_delivery_order_just_barely_free_delivery(self):
+        order = self.service.place_order("regular", [{"product_id": "bag", "quantity": 4}])
+        self.assertEqual(order["subtotal_cents"], 10000)
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 0)
+        self.assertEqual(order["total_cents"], 10000)
 
 if __name__ == "__main__":
     unittest.main()
