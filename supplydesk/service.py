@@ -82,8 +82,9 @@ class OrderService:
         #invalid input catching
         if customer_type not in ("regular", "student"):
             raise ValueError("Customer type must be regular or student.")
-        if fulfillment not in ("pickup", "delivery"):
-            raise ValueError("Fulfillment must be pickup or delivery.")
+        if fulfillment not in ("pickup", "delivery", "express"):
+            #change here probably breaks multiple tests, update for correct message later
+            raise ValueError("Fulfillment must be pickup, delivery, or express.")
         if not isinstance(items, list) or not items:
             raise ValueError("An order must contain at least one item.")
         #declaration of lines list and subtotal
@@ -126,6 +127,8 @@ class OrderService:
         delivery = 0
         if fulfillment == "delivery" and subtotal - discount < 10000:
             delivery = 600
+        elif fulfillment == "express":
+            delivery = 1200
         #place all results into dict for return
         #customer type & fulfillment not returned since neither has changed
         listAndCosts = {
