@@ -53,6 +53,8 @@ class OrderService:
         for order in state["orders"]:
             if order["order_id"] == order_id:
                 return order
+        if order_id == None:
+            order_id = ""
         raise ValueError("Unknown order: " + order_id)
 
     def cancel_order(self, order_id):
