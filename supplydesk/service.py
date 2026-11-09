@@ -68,12 +68,13 @@ class OrderService:
             if order_id == None:
                 order_id = ""
             raise ValueError("Unknown order: " + order_id)
-        for line in order["items"]:
-            for product in state["catalog"]:
-                if product["product_id"] == line["product_id"]:
-                    product["stock"] += line["quantity"]
-        order["status"] = "cancelled"
-        self.store.save(state)
+        if order["status"] != "cancelled":
+            for line in order["items"]:
+                for product in state["catalog"]:
+                    if product["product_id"] == line["product_id"]:
+                        product["stock"] += line["quantity"]
+            order["status"] = "cancelled"
+            self.store.save(state)
         return order
 
     def items_and_price_calc(self, customer_type, items, fulfillment="pickup"):
