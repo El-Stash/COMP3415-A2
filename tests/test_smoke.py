@@ -170,12 +170,12 @@ class OrderSmokeTests(unittest.TestCase):
     def test_none_fulfillment_quote(self):
         with self.assertRaises(ValueError) as context:
             self.service.quote("regular", [{"product_id": "notebook", "quantity": 5}], None)
-        self.assertEqual(str(context.exception), "Fulfillment must be pickup or delivery.")
+        self.assertEqual(str(context.exception), "Fulfillment must be pickup, delivery, or express.")
 
     def test_invalid_fulfillment_order(self):
         with self.assertRaises(ValueError) as context:
             self.service.place_order("regular", [{"product_id": "notebook", "quantity": 5}], "air-drop")
-        self.assertEqual(str(context.exception), "Fulfillment must be pickup or delivery.")
+        self.assertEqual(str(context.exception), "Fulfillment must be pickup, delivery, or express.")
 
     def test_none_items_quote(self):
         with self.assertRaises(ValueError) as context:
@@ -287,7 +287,6 @@ class OrderSmokeTests(unittest.TestCase):
             self.service.place_order("regular", [{"product_id": "notebook", "quantity": 21}])
         self.assertEqual(str(context.exception), "Not enough stock for notebook.")
 
-    #this test fails, because None cannot be concatenated to a string, possible edge case issue detected
     def test_get_none_order(self):
         with self.assertRaises(ValueError) as context:
             OrderService(self.path).get_order(None)
@@ -303,7 +302,6 @@ class OrderSmokeTests(unittest.TestCase):
             OrderService(self.path).get_order("ORD-0128")
         self.assertEqual(str(context.exception), "Unknown order: ORD-0128")
 
-    #this test fails, because None cannot be concatenated to a string, possible edge case issue detected
     def test_cancel_none_order(self):
         with self.assertRaises(ValueError) as context:
             OrderService(self.path).cancel_order(None)
@@ -314,8 +312,6 @@ class OrderSmokeTests(unittest.TestCase):
             OrderService(self.path).cancel_order("ORD-0128")
         self.assertEqual(str(context.exception), "Unknown order: ORD-0128")
 
-    #test fails, orders cancelled twice create extra stock from nothing
-    #critical flaw that must be resolved
     def test_cancelling_order_twice_does_not_create_extra_stock(self):
         before = self.service.catalog()
         order = self.service.place_order("regular", [{"product_id": "pen-pack", "quantity": 2}])
@@ -323,6 +319,55 @@ class OrderSmokeTests(unittest.TestCase):
         self.assertEqual(cancelled["status"], "cancelled")
         self.service.cancel_order(order["order_id"])
         self.assertEqual(self.service.catalog(), before)
+
+    #new tests for CR-01
+    def test_regular_express_quote(self):
+        quote = self.service.quote("regular", [{"product_id": "notebook", "quantity": 2}], "express")
+        self.assertEqual(quote["discount_cents"], 0)
+        self.assertEqual(quote["delivery_cents"], 1200)
+        self.assertEqual(quote["total_cents"], 2200)
+
+    def test_student_express_quote(self):
+        quote = self.service.quote("student", [{"product_id": "hoodie", "quantity": 2}], "express")
+        self.assertEqual(quote["discount_cents"], 800)
+        self.assertEqual(quote["delivery_cents"], 1200)
+        self.assertEqual(quote["total_cents"], 8400)        
+
+    def test_regular_express_quote_at_free_delivery_qualified(self):
+        quote = self.service.quote("regular", [{"product_id": "hoodie", "quantity": 3}], "express")
+        self.assertEqual(quote["discount_cents"], 0)
+        self.assertEqual(quote["delivery_cents"], 1200)
+        self.assertEqual(quote["total_cents"], 13200)
+
+    def test_student_express_below_discount_quote(self):
+        quote = self.service.quote("regular", [{"product_id": "hoodie", "quantity": 1}], "express")
+        self.assertEqual(quote["discount_cents"], 0)
+        self.assertEqual(quote["delivery_cents"], 1200)
+        self.assertEqual(quote["total_cents"], 5200)
+
+    def test_regular_express_order(self):
+        order = self.service.place_order("regular", [{"product_id": "notebook", "quantity": 2}], "express")
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 1200)
+        self.assertEqual(order["total_cents"], 2200)
+
+    def test_student_express_order(self):
+        order = self.service.place_order("student", [{"product_id": "hoodie", "quantity": 2}], "express")
+        self.assertEqual(order["discount_cents"], 800)
+        self.assertEqual(order["delivery_cents"], 1200)
+        self.assertEqual(order["total_cents"], 8400) 
+
+    def test_regular_express_order_at_free_delivery_qualified(self):
+        order = self.service.place_order("regular", [{"product_id": "hoodie", "quantity": 3}], "express")
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 1200)
+        self.assertEqual(order["total_cents"], 13200)
+
+    def test_student_express_below_discount_order(self):
+        order = self.service.place_order("regular", [{"product_id": "hoodie", "quantity": 1}], "express")
+        self.assertEqual(order["discount_cents"], 0)
+        self.assertEqual(order["delivery_cents"], 1200)
+        self.assertEqual(order["total_cents"], 5200) 
 
 if __name__ == "__main__":
     unittest.main()

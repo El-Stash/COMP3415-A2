@@ -83,7 +83,6 @@ class OrderService:
         if customer_type not in ("regular", "student"):
             raise ValueError("Customer type must be regular or student.")
         if fulfillment not in ("pickup", "delivery", "express"):
-            #change here probably breaks multiple tests, update for correct message later
             raise ValueError("Fulfillment must be pickup, delivery, or express.")
         if not isinstance(items, list) or not items:
             raise ValueError("An order must contain at least one item.")
